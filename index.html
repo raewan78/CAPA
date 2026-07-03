@@ -188,9 +188,25 @@
     background: var(--border);
     min-width: 350px;
   }
-  .settings-grid--ops {
-    grid-template-columns: repeat(3, minmax(140px, 240px));
-    border-top: 2px solid var(--bg);
+  .settings-grid--equip {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    background: var(--border);
+    gap: 1px;
+  }
+  .settings-grid--equip .setting-item {
+    flex: 0 0 100px;
+    width: 100px;
+  }
+  .settings-equip-sep {
+    flex: 1 1 auto;
+    min-width: 8px;
+    background: var(--s1);
+    border-left: 2px solid var(--bg);
+  }
+  .setting-item--ops {
+    border-left: 1px solid var(--bg);
   }
   .setting-item {
     display: flex;
@@ -275,6 +291,8 @@
   .proc-text-input:focus { outline: none; border-color: var(--accent); background: var(--s3); }
   .proc-equip-select { background: var(--s3); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: var(--mono); font-size: 11px; padding: 2px 4px; cursor: pointer; }
   .proc-equip-select:focus { outline: none; border-color: var(--accent); }
+  .proc-name-input { width: 100%; background: var(--s3); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: var(--mono); font-size: 11px; padding: 2px 4px; box-sizing: border-box; }
+  .proc-name-input:focus { outline: none; border-color: var(--accent); background: var(--s2); }
   .proc-num-input { width: 58px; background: var(--s3); border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: var(--mono); font-size: 12px; padding: 2px 5px; text-align: right; }
   .proc-num-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-d); }
   .proc-uph-val { font-family: var(--mono); font-size: 11px; color: var(--good); text-align: right; white-space: nowrap; }
@@ -438,7 +456,7 @@
         <span class="title" data-i18n="basicSettings">기본 설정</span>
       </div>
       <div class="settings-scroll">
-        <div class="settings-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        <div class="settings-grid settings-grid--equip">
           <div class="setting-item">
             <span class="setting-label">T5377S-149ball<span class="setting-sub" data-i18n="units">대수</span></span>
             <input type="number" id="m-t5377" value="0" min="0" max="999" step="0.1">
@@ -455,8 +473,6 @@
             <span class="setting-label">T5377S-WSON8<span class="setting-sub" data-i18n="units">대수</span></span>
             <input type="number" id="m-t5377wson8" value="0" min="0" max="999" step="0.1">
           </div>
-        </div>
-        <div class="settings-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--bg);">
           <div class="setting-item">
             <span class="setting-label">T5588-149Ball<span class="setting-sub" data-i18n="units">대수</span></span>
             <input type="number" id="m-t5588" value="0" min="0" max="999" step="0.1">
@@ -465,8 +481,6 @@
             <span class="setting-label">T5503-149ball<span class="setting-sub" data-i18n="units">대수</span></span>
             <input type="number" id="m-t5503" value="0" min="0" max="999" step="0.1">
           </div>
-        </div>
-        <div class="settings-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--bg);">
           <div class="setting-item">
             <span class="setting-label">Magnum2X-153ball<span class="setting-sub" data-i18n="units">대수</span></span>
             <input type="number" id="m-magnum2x" value="0" min="0" max="999" step="0.1">
@@ -479,17 +493,16 @@
             <span class="setting-label">Magnum1-153ball<span class="setting-sub" data-i18n="units">대수</span></span>
             <input type="number" id="m-magnum1" value="0" min="0" max="999" step="0.1">
           </div>
-        </div>
-        <div class="settings-grid settings-grid--ops">
-          <div class="setting-item">
+          <div class="settings-equip-sep"></div>
+          <div class="setting-item setting-item--ops">
             <span class="setting-label"><span data-i18n="hoursLabel">가동 시간</span><span class="setting-sub">Hours / Day</span></span>
             <input type="number" id="hours" value="24" min="0.5" max="24" step="0.5">
           </div>
-          <div class="setting-item">
+          <div class="setting-item setting-item--ops">
             <span class="setting-label"><span data-i18n="effLabel">가동 효율</span><span class="setting-sub">Equipment Efficiency</span></span>
             <input type="number" id="efficiency" value="50" min="1" max="100" step="1">
           </div>
-          <div class="setting-item">
+          <div class="setting-item setting-item--ops">
             <span class="setting-label"><span data-i18n="workdaysLabel">가용 날짜</span><span class="setting-sub">Days / Month</span></span>
             <input type="number" id="workdays" value="30" min="1" max="31" step="1">
           </div>
@@ -664,7 +677,6 @@
     applyBasicRaw(data?.basic || null);
     opns = data?.opns ? JSON.parse(JSON.stringify(data.opns)) : [makeOpn('OPN-001', 100)];
     opns.forEach(opn => opn.processes.forEach(p => {
-      if (!PROC_NAMES.includes(p.name)) p.name = 'NHOT';
       if (EQUIP_MIGRATE[p.equip]) p.equip = EQUIP_MIGRATE[p.equip];
     }));
   }
@@ -888,9 +900,7 @@
         return `
         <tr data-pi="${pi}"${en ? '' : ' class="proc-tr-disabled"'}>
           <td style="text-align:center"><input type="checkbox" class="proc-enable-cb" data-action="toggle-proc"${en ? ' checked' : ''}></td>
-          <td><select class="proc-equip-select" data-field="name">
-            ${PROC_NAMES.map(n => `<option value="${n}"${proc.name===n?' selected':''}>${n}</option>`).join('')}
-          </select></td>
+          <td><input type="text" class="proc-name-input" data-field="name" value="${proc.name}" list="proc-names-list" placeholder="공정명"></td>
           <td><select class="proc-equip-select" data-field="equip">
             ${EQUIP_LIST.map(e => `<option value="${e}"${proc.equip===e?' selected':''}>${e}</option>`).join('')}
           </select></td>
@@ -975,7 +985,8 @@
         const tr    = e.target.closest('tr'); if (!tr) return;
         const pi    = +tr.dataset.pi;
         const field = e.target.dataset.field;
-        const proc  = opn.processes[pi]; if (!proc || !field || field === 'equip' || field === 'name') return;
+        const proc  = opn.processes[pi]; if (!proc || !field || field === 'equip') return;
+        if (field === 'name') { proc.name = e.target.value; storeSave(); return; }
         proc[field] = parseFloat(e.target.value) || 0;
         const uphEl = tr.querySelector('.proc-uph-val');
         if (uphEl) uphEl.textContent = uphOf(proc) > 0 ? fmt(uphOf(proc)) : '—';
@@ -986,7 +997,7 @@
         const pi    = +tr.dataset.pi;
         const field = e.target.dataset.field;
         const proc  = opn.processes[pi]; if (!proc || !field) return;
-        if (field === 'equip' || field === 'name') { proc[field] = e.target.value; }
+        if (field === 'equip') { proc[field] = e.target.value; }
         storeSave(); renderOpnList(); calc();
       });
 
@@ -1134,7 +1145,7 @@
       const data = JSON.parse(await (await handle.getFile()).text());
       applyBasicRaw(data.basic || null);
       opns = data.opns ? JSON.parse(JSON.stringify(data.opns)) : [makeOpn('OPN-001', 100)];
-      opns.forEach(opn => opn.processes.forEach(p => { if (!PROC_NAMES.includes(p.name)) p.name = 'NHOT'; }));
+      opns.forEach(opn => opn.processes.forEach(p => { if (EQUIP_MIGRATE[p.equip]) p.equip = EQUIP_MIGRATE[p.equip]; }));
       fileHandle = handle;
       storeSave(); renderOpnList(); calc();
     } catch(e) { if (e.name !== 'AbortError') alert(t('loadErr') + e.message); }
@@ -1176,5 +1187,13 @@
     applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
   });
 </script>
+<datalist id="proc-names-list">
+  <option value="NHOT"><option value="NCOLD"><option value="DHOT"><option value="DCOLD">
+  <option value="DSPEED"><option value="FT1"><option value="FT2">
+  <option value="QA1"><option value="QA2">
+  <option value="NHQA"><option value="NRQA"><option value="NCQA">
+  <option value="DHQA"><option value="DRQA"><option value="DCQA">
+  <option value="SHQA"><option value="SRQA"><option value="SCQA">
+</datalist>
 </body>
 </html>
